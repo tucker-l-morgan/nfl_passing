@@ -1,0 +1,103 @@
+---
+title: "NFL Passing Analysis"
+author: "Tucker Morgan"
+date: "9/27/2021"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+```
+
+## Purpose
+Teams in the National Football League (NFL) are racking up more passing yards than ever, so how can current quarterback (QB) passing stats be evaluated against historical data? This analysis will aim to answer that question and provide insight into how passing stats and QB performances have changed over the past 25 years.
+
+All of the data used in this analysis was obtained from https://www.pro-football-reference.com/.
+
+First, I'll load in the data from the 1996 NFL season, the oldest data set I'm including here. I'll take a look at the provided parameters and trim down unneeded info to streamline our analysis. I'm starting with 1996 because I want consistent parameters across data sets, and I assume that more parameters may have been tracked in more recent seasons.
+
+```{r 1996 import and clean up}
+passing_1996 <- read_csv("nfl_data/passing_1996.csv")
+head(passing_1996)
+names(passing_1996)
+```
+
+I think the primary variables I'm interested in are:
+
+* Player
+* Age
+* G
+* Cmp
+* Att
+* Yds
+* TD
+* Int
+
+So I'll select for those variables and clean up the variable names. I'm also going to generate a histogram to look at our data distribution and see if we need to exclude some data.
+```{r, message = FALSE}
+passing_1996 <- select(passing_1996, 
+                       player = Player, age = Age, games = G, completions = Cmp, attempts = Att,
+                       yards = Yds...12, td = TD, int = Int)
+ggplot(passing_1996, aes(x = yards)) + geom_histogram()
+tail(passing_1996)
+ggplot(passing_1996, aes(x = games)) + geom_histogram()
+```
+
+There appear to be dozens of QBs with near zero yards passing for the season. These instances won't really tell us much about the history of the NFL and its passing trends, so I'd like to exclude some of the noise. I've also looked at a histogram of games played. I'm going to set 8 games as the cutoff for our QBs, since that is equivalent to playing in half of the games in a regular season (16 games total).
+
+We can also filter for a minimum number of attempts in an effort to exclude the likes of Jerry Rice and Barry Sanders, players who had only 1 passing attempt but played a full season at other positions. I'll set this cut off at 100 attempts.
+
+```{r, message = FALSE}
+passing_1996 <- filter(passing_1996,
+                       games > 8, attempts > 100)
+ggplot(passing_1996, aes(x = yards)) + geom_histogram()
+ggplot(passing_1996, aes(x = games)) + geom_histogram()
+```
+
+The histograms above look great, particularly the yards plot, which somewhat resembles a normal distribution. The last thing I need to do is add a `year` variable to distinguish this data set from other years when I bind them together for the larger analyses.
+
+```{r}
+passing_1996 <- mutate(passing_1996, year = 1996)
+passing_1996 <- mutate(passing_1996, perf_over_median = yards / median(pull(passing_1996, yards)))
+```
+
+I will now perform this data cleaning for the years 1997 - 2020. This code will be collapsed and the results not shown.
+```{r, eval = FALSE}
+passing_1997 <- read_csv("nfl_data/passing_1997.csv") %>% 
+  select(player = Player, age = Age, games = G, completions = Cmp, attempts = Att,                         yards = Yds...12, td = TD, int = Int) %>% 
+  filter(games > 8, attempts > 100) %>% 
+  mutate(year = 1997) %>% 
+  mutate(perf_over_median = yards / median(yards))
+
+passing_1998 <- read_csv("nfl_data/passing_1998.csv") %>% 
+  select(player = Player, age = Age, games = G, completions = Cmp, attempts = Att,                         yards = Yds...12, td = TD, int = Int) %>% 
+  filter(games > 8, attempts > 100) %>% 
+  mutate(year = 1998) %>% 
+  mutate(perf_over_median = yards / median(yards))
+
+passing_1999 <- read_csv("nfl_data/passing_1999.csv") %>% 
+  select(player = Player, age = Age, games = G, completions = Cmp, attempts = Att,                         yards = Yds...12, td = TD, int = Int) %>% 
+  filter(games > 8, attempts > 100) %>% 
+  mutate(year = 1999) %>% 
+  mutate(perf_over_median = yards / median(yards))
+
+passing_2000 <- read_csv("nfl_data/passing_2000.csv") %>% 
+  select(player = Player, age = Age, games = G, completions = Cmp, attempts = Att,                         yards = Yds...12, td = TD, int = Int) %>% 
+  filter(games > 8, attempts > 100) %>% 
+  mutate(year = 2000) %>% 
+  mutate(perf_over_median = yards / median(yards))
+
+passing_2001 <- read_csv("nfl_data/passing_2001.csv") %>% 
+  select(player = Player, age = Age, games = G, completions = Cmp, attempts = Att,                         yards = Yds...12, td = TD, int = Int) %>% 
+  filter(games > 8, attempts > 100) %>% 
+  mutate(year = 2001) %>% 
+  mutate(perf_over_median = yards / median(yards))
+
+passing_2002 <- read_csv("nfl_data/passing_2002.csv") %>% 
+  select(player = Player, age = Age, games = G, completions = Cmp, attempts = Att,                         yards = Yds...12, td = TD, int = Int) %>% 
+  filter(games > 8, attempts > 100) %>% 
+  mutate(year = 2002) %>% 
+  mutate(perf_over_median = yards / median(yards))
+```
+
+
