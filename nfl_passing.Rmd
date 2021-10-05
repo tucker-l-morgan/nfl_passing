@@ -25,6 +25,8 @@ pre[class] {
 
 ```{r setup, message = FALSE}
 library(tidyverse)
+library(RColorBrewer)
+library(viridis)
 ```
 
 ## Purpose
@@ -251,9 +253,30 @@ passing_2020 <- read_csv("nfl_data/passing_2020.csv") %>%
   mutate(perf_over_median = yards / median(yards))
 ```
 
-```{r, include = FALSE, eval = FALSE}
-## This is the kind of graphing I'll need to do once all years are combined.
-ggplot(passing_1996_2002, aes(group = year, x = year, y = yards, fill = year)) + geom_boxplot()
+Now, I'll combine the data sets into one for analysis.
+```{r combining data sets}
+nfl_passing <- bind_rows(
+  passing_1996, passing_1997, passing_1998, passing_1999, passing_2000,
+  passing_2001, passing_2002, passing_2003, passing_2004, passing_2005,
+  passing_2006, passing_2007, passing_2008, passing_2009, passing_2010,
+  passing_2011, passing_2012, passing_2013, passing_2014, passing_2015,
+  passing_2016, passing_2017, passing_2018, passing_2019, passing_2020
+)
+```
+
+
+```{r box plot graphing}
+ggplot(
+  nfl_passing, aes(group = year, x = year, y = yards, fill = year)) + 
+  geom_boxplot(alpha = 0.9) + 
+  geom_smooth(se = FALSE, color = "black", group = 1) +
+  scale_fill_viridis(option = "D") +
+  xlab("Season") +
+  ylab("Total Yards") +
+  ggtitle("Distributions of Total Passing Yards per Quarterback") +
+  theme(legend.position = "none")
+
+## I'm thinking that from here, I can sort by top performers over median and note who those individuals are. I could also filter for the median quarterback in each season and note those individuals.
 ```
 
 
