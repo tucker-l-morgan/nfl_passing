@@ -273,7 +273,7 @@ passing_plot <- ggplot(
   scale_fill_viridis(option = "D") +
   xlab("Season") +
   ylab("Total Yards") +
-  ggtitle("Distributions of Total Passing Yards for Individual Quarterbacks") +
+  ggtitle("Distributions of Total Passing Yards for NFL QBs (> 8 games, > 100 att.)") +
   theme(legend.position = "none")
 
 ggsave(
