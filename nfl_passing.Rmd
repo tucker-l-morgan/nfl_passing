@@ -277,7 +277,7 @@ passing_plot <- ggplot(
   theme(legend.position = "none")
 
 ggsave(
-  "passing_boxes",
+  "passing_boxes.pdf",
   plot = passing_plot,
   device = "pdf",
   scale = 1
