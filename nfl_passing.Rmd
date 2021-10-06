@@ -266,15 +266,22 @@ nfl_passing <- bind_rows(
 
 
 ```{r box plot graphing}
-ggplot(
+passing_plot <- ggplot(
   nfl_passing, aes(group = year, x = year, y = yards, fill = year)) + 
   geom_boxplot(alpha = 0.9) + 
   geom_smooth(se = FALSE, color = "black", group = 1) +
   scale_fill_viridis(option = "D") +
   xlab("Season") +
   ylab("Total Yards") +
-  ggtitle("Distributions of Total Passing Yards per Quarterback") +
+  ggtitle("Distributions of Total Passing Yards for Individual Quarterbacks") +
   theme(legend.position = "none")
+
+ggsave(
+  "passing_boxes",
+  plot = passing_plot,
+  device = "pdf",
+  scale = 1
+)
 
 ## I'm thinking that from here, I can sort by top performers over median and note who those individuals are. I could also filter for the median quarterback in each season and note those individuals.
 ```
