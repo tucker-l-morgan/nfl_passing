@@ -34,6 +34,7 @@ Teams in the National Football League (NFL) are racking up more passing yards th
 
 All of the data used in this analysis was obtained from https://www.pro-football-reference.com/.
 
+## Data Import and Cleaning
 First, I'll load in the data from the 1996 NFL season, the oldest data set I'm including here. I'll take a look at the provided parameters and trim down unneeded info to streamline our analysis. I'm starting with 1996 because I want consistent parameters across data sets, and I assume that more parameters may have been tracked in more recent seasons.
 
 ```{r 1996 import and clean up, message = FALSE}
@@ -46,12 +47,12 @@ I think the primary variables I'm interested in are:
 
 * Player
 * Age
-* G
-* Cmp
-* Att
-* Yds
-* TD
-* Int
+* G (games)
+* Cmp (completions)
+* Att (attempts)
+* Yds (yards)
+* TD (touchdowns)
+* Int (interceptions)
 
 So I'll select for those variables and clean up the variable names. I'm also going to generate a histogram to look at our data distribution and see if we need to exclude some data.
 ```{r 1996 explore, message = FALSE}
@@ -253,7 +254,7 @@ passing_2020 <- read_csv("nfl_data/passing_2020.csv") %>%
   mutate(perf_over_median = yards / median(yards))
 ```
 
-Now, I'll combine the data sets into one for analysis.
+Now, I'll use `bind_rows` to stack the data sets into one for analysis.
 ```{r combining data sets}
 nfl_passing <- bind_rows(
   passing_1996, passing_1997, passing_1998, passing_1999, passing_2000,
@@ -264,9 +265,11 @@ nfl_passing <- bind_rows(
 )
 ```
 
+## Analysis
 
-```{r box plot graphing}
-passing_plot <- ggplot(
+First, I'll take a look at box plots for `yards` for each `year` and add a trendline to see how things have changed over the past 25 years.
+```{r box plot graphing, message = FALSE}
+passing_boxes <- ggplot(
   nfl_passing, aes(group = year, x = year, y = yards, fill = year)) + 
   geom_boxplot(alpha = 0.9) + 
   geom_smooth(se = FALSE, color = "black", group = 1) +
@@ -275,15 +278,36 @@ passing_plot <- ggplot(
   ylab("Total Yards") +
   ggtitle("Distributions of Total Passing Yards for NFL QBs (> 8 games, > 100 att.)") +
   theme(legend.position = "none")
-
+passing_boxes
 ggsave(
   "passing_boxes.pdf",
-  plot = passing_plot,
+  plot = passing_boxes,
   device = "pdf",
   scale = 1
 )
 
 ## I'm thinking that from here, I can sort by top performers over median and note who those individuals are. I could also filter for the median quarterback in each season and note those individuals.
 ```
+A couple of things I like about this plot:
 
+  * The box plots are relatively consistent in spread. There are fluctuations year to year in terms of interquartile range, but I would expect some changes year-to-year because of the nature of the NFL and passing yards. Certain quarterbacks could get injured halfway through the season or a quarterback could come in for garbage time in a few games and throw off the distribution, however these types of events are assumed to be equally likely in each season.
+  * The trendline shows a general increase in individual passing yards over time. This aligns with my expectations and the perceptions in sports media about the league. Not a big surprise here, but good to see that the data backs up intuition / perception. Of further note here is that there was more drastic increase in the 2007 - 2010 range that has tapered off a bit in recent years. We could take a look at major events in NFL history (e.g., rule changes) to see if we can find an explanatory variable other than time.
+  * The original motivation for this analysis was a position from Ryen Russillo of the Ryen Russillo Podcast in which he stated that 4,000 yards isn't as impressive of a benchmark now as it used to be. In the trend analysis, it's clear that very few quarterbacks reached 4,000 or more yards in the early 2000's compared to recent years. I'll look more into this later.
+
+```{r total passing yards histogram}
+passing_bins <- ggplot(
+  nfl_passing, aes(group = year, x = yards, fill = year)) +
+  geom_histogram(binwidth = 1000, boundary = 4000, alpha = 1) +
+  labs(x = "Total Passing Yards in a Season",
+       y = "Count of QBs",
+       title = "Number of QBs (> 8 games, > 100 att.) in Each 1,000 yd Bucket") +
+  scale_fill_viridis(name = "Season", option = "D")
+passing_bins
+ggsave(
+  "passing_bins.pdf",
+  plot = passing_bins,
+  device = "pdf",
+  scale = 1
+)
+```
 
