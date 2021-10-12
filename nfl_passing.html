@@ -428,7 +428,7 @@ passing_2020 &lt;- read_csv(&quot;nfl_data/passing_2020.csv&quot;) %&gt;%
   filter(games &gt; 8, attempts &gt; 100) %&gt;% 
   mutate(year = 2020) %&gt;% 
   mutate(perf_over_median = yards / median(yards))</code></pre>
-<p>Now, I’ll use <code>bind_rows</code> to stack the data sets into one for analysis.</p>
+<p>Now, I’ll use <code>bind_rows</code> to stack the data sets into one for analysis. I’ve also cleaned the QB names because some of them have special characters indicating MVP or Pro-Bowl seasons. This might be useful in another analysis, but I’m thinking I won’t need it here in this form.</p>
 <pre class="r"><code>nfl_passing &lt;- bind_rows(
   passing_1996, passing_1997, passing_1998, passing_1999, passing_2000,
   passing_2001, passing_2002, passing_2003, passing_2004, passing_2005,

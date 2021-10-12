@@ -254,7 +254,7 @@ passing_2020 <- read_csv("nfl_data/passing_2020.csv") %>%
   mutate(perf_over_median = yards / median(yards))
 ```
 
-Now, I'll use `bind_rows` to stack the data sets into one for analysis.
+Now, I'll use `bind_rows` to stack the data sets into one for analysis. I've also cleaned the QB names because some of them have special characters indicating MVP or Pro-Bowl seasons. This might be useful in another analysis, but I'm thinking I won't need it here in this form.
 ```{r combining data sets}
 nfl_passing <- bind_rows(
   passing_1996, passing_1997, passing_1998, passing_1999, passing_2000,
@@ -262,7 +262,8 @@ nfl_passing <- bind_rows(
   passing_2006, passing_2007, passing_2008, passing_2009, passing_2010,
   passing_2011, passing_2012, passing_2013, passing_2014, passing_2015,
   passing_2016, passing_2017, passing_2018, passing_2019, passing_2020
-)
+) %>% 
+  mutate(nfl_passing, player = str_replace_all(pull(nfl_passing, player), "[^[:alnum:]]", ""))
 ```
 
 ## Analysis
