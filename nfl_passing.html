@@ -434,8 +434,8 @@ passing_2020 &lt;- read_csv(&quot;nfl_data/passing_2020.csv&quot;) %&gt;%
   passing_2001, passing_2002, passing_2003, passing_2004, passing_2005,
   passing_2006, passing_2007, passing_2008, passing_2009, passing_2010,
   passing_2011, passing_2012, passing_2013, passing_2014, passing_2015,
-  passing_2016, passing_2017, passing_2018, passing_2019, passing_2020
-)</code></pre>
+  passing_2016, passing_2017, passing_2018, passing_2019, passing_2020) %&gt;% 
+  mutate(player = str_replace_all(player, &quot;[^[:alnum:]]&quot;, &quot;&quot;))</code></pre>
 </div>
 <div id="analysis" class="section level2">
 <h2>Analysis</h2>
