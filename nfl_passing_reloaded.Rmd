@@ -1,0 +1,67 @@
+---
+title: "NFL Passing Analysis"
+author: "Tucker Morgan"
+date: "1/9/2022"
+output: html_document
+---
+
+```{css, echo = FALSE}
+pre {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 150px;
+}
+
+.scroll-100 {
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(rvest)
+library(RColorBrewer)
+library(viridis)
+```
+
+## Introduction
+
+### Purpose
+
+Teams in the National Football League (NFL) are racking up more passing yards than ever, so how can current quarterback (QB) passing stats be evaluated against historical data? This analysis will aim to answer that question and provide insight into how passing stats and QB performances have changed over the past 25 years.
+
+I originally set out to analyze these data during my first semester at Columbia as I learned more R. Well, turns out we learned even more helpful material later in the semester, so I'm planning to run a re-vamped or "Reloaded" version now. I'm hoping to streamline some of my code from last time (for example, using `for` loops instead of copying code).
+
+All of the data used in this analysis was obtained from https://www.pro-football-reference.com/.
+
+### Motivation
+
+A common theme over the past few years in NFL-commentary circles has been how to compare current NFL QB performances (particularly seasonal stat totals) to an historic benchmark. The game has changed in many ways from playstyle philosophies to major rule changes, so it's a fair question: do higher stats (like yards or touchdowns) truly indicate better performing QBs or is it easier / more common to rack up stats in "today's NFL"? A particular podcast highlighting this in my mind has been [The Ryen Russillo Podcast](https://www.theringer.com/ryen-russillo-podcast) from The Ringer. A common refrain has been something along the lines of "well, 4,000 yards ain't what it used to be."
+
+I will analyze the distribution of passing yards over the years and see if classic benchmarks like 4,000 yards passing in a single season are as meaningful now as they were 25 years ago. I will also propose a simple measure to assess current performances against those of yesteryear.
+
+## Data Import and Cleaning
+
+I want to first set up a function to load in and clean each yearly dataset.
+
+```{r import function}
+read_nfl_passing = function(url){
+  
+}
+```
+
+```{r url test}
+url <- "https://www.pro-football-reference.com/years/2021/passing.htm"
+nfl_pass_html <- read_html(url)
+
+nfl_pass_table <- nfl_pass_html %>% html_table() %>% first()
+
+# Here I was able to successfully load in and extract the table from pro-football-reference;
+# in my function, I will want to do this for each year and add a column for year. I think this can be incorporated into the function
+```
+
