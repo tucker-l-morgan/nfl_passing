@@ -49,19 +49,80 @@ I will analyze the distribution of passing yards over the years and see if class
 
 I want to first set up a function to load in and clean each yearly dataset.
 
-```{r import function}
-read_nfl_passing = function(url){
-  
-}
-```
-
 ```{r url test}
 url <- "https://www.pro-football-reference.com/years/2021/passing.htm"
 nfl_pass_html <- read_html(url)
 
-nfl_pass_table <- nfl_pass_html %>% html_table() %>% first()
+nfl_pass_table <-
+  nfl_pass_html %>%
+  html_table() %>%
+  first() %>% 
+  janitor::clean_names() %>% 
+  mutate(year = "2021")
 
+rm(nfl_pass_html)
 # Here I was able to successfully load in and extract the table from pro-football-reference;
 # in my function, I will want to do this for each year and add a column for year. I think this can be incorporated into the function
 ```
 
+```{r import function}
+read_nfl_passing = function(url){
+  
+  html = read_html(url)
+  
+  pass_table = html %>% 
+    html_table() %>% 
+    first() %>% 
+    janitor::clean_names()
+  
+  output = pass_table
+  
+}
+```
+
+```{r using map and dataframe}
+nfl_passing <- 
+  tibble(
+    season = 1995:2021,
+    urls = str_c("https://www.pro-football-reference.com/years/", season, "/passing.htm")) %>% 
+  mutate(stats = map(urls, read_nfl_passing)) %>% 
+  unnest(cols = c(stats))
+```
+
+Nice! I was able to pull in several seasons of data from Pro Football Reference. It looks like there are a few columns I can remove to streamline the dataset from here, and I think the function pulled in the column headers for the additional pages of each year. I'll go ahead and filter out the additional headers and unneeded columns. I will also need to convert the columns to numbers and factors accordingly, since all were considered characters because of the intermediary headers.
+
+```{r data cleaning}
+nfl_passing_clean <- 
+  nfl_passing %>% 
+  filter(rk != "Rk") %>% 
+  select(-urls, -pos, -td_percent, -int_percent, -x1d, -lng, -y_c, -y_g, -rate, -sk, -yds_2, -sk_percent, -ny_a, -any_a, -x4qc, -gwd, -qbr) %>% 
+  rename(rank = rk, team = tm, games = g, starts = gs, record = q_brec, completions = cmp, attempts = att, yards = yds) %>% 
+  mutate(rank = as.numeric(rank),
+         team = as.factor(team),
+         age = as.numeric(age),
+         games = as.numeric(games),
+         starts = as.numeric(starts),
+         completions = as.numeric(completions),
+         attempts = as.numeric(attempts),
+         cmp_percent = as.numeric(cmp_percent),
+         yards = as.numeric(yards),
+         td = as.numeric(td),
+         int = as.numeric(int))
+```
+
+This data set includes every player to attempt a pass in each NFL season, however we are primarily interested in "the main guys" over the years. We'd like our data set to be indicative of QBs who are playing consistently from year to year - career QBs. First, let's look at the distribution of yards and attempts.
+
+```{r yards distribution}
+nfl_passing_clean %>% 
+  ggplot(aes(x = yards)) +
+  geom_density()
+
+nfl_passing_clean %>% 
+  ggplot(aes(x = attempts)) +
+  geom_density()
+
+nfl_passing_clean %>% 
+  ggplot(aes(x = rank)) + geom_density()
+```
+
+As expected, there are a large number of players with fewer than 1,000 or even 500 yards and a large number of players with fewer than 100 passing attempts. Since we're interested in how performances change over time, we may want to be careful about our cut-off here. Setting a minimum yards or attempts cut-off could include more quarterbacks in future years compared to earlier years. In each season, Pro Football Reference has QBs ranked from 1 to n with n varying each year depending on how many players attempt a pass. I think setting a cut-off for `rank` might be the most consistent cut-off from year-to-year.
