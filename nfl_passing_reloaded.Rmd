@@ -146,7 +146,7 @@ nfl_passing_clean %>%
 
 As expected, there are a large number of players with fewer than 1,000 or even 500 yards and a large number of players with fewer than 100 passing attempts. Since we're interested in how performances change over time, we may want to be careful about our cut-off here. Setting a minimum yards or attempts cut-off could include more quarterbacks in future years compared to earlier years. In each season, Pro Football Reference has QBs ranked from 1 to n with n varying each year depending on how many players attempt a pass. I think setting a cut-off for `rank` might be the most consistent cut-off from year-to-year.
 
-Although the number of NFL teams has changed over time with 30 teams in 1995 up to 32 teams from 2002 to present, the change in number of teams was relatively small (< 10% increase). Therefore, I will set the `rank` cutoff at 32 each year. This will allows us to capture the QB seeing the most action for each NFL team with one or two additional quarterbacks in the 1995 to 2001 seasons.
+Although the number of NFL teams has changed over time with 30 teams in 1995 up to 32 teams from 2002 to present, the change in number of teams was relatively small (< 10% increase). Therefore, I will set the `rank` cutoff at 32 each year. This allows us to capture the QB seeing the most action for each NFL team with one or two additional quarterbacks in the 1995 to 2001 seasons.
 
 ```{r rank cutoff distributions}
 nfl_passing_clean %>% 
@@ -195,7 +195,7 @@ nfl_passing_pmd %>%
   knitr::kable()
 ```
 
-Many of these performances make sense as top statistical passing seasons of all time. At number 1 is Tom Brady's 2007 season in which his team went 16-0 in the regular season. He threw for 50 touchdowns and just 8 interceptions.The second highest performance over median was Steve Beuerlein in 1999. At the time of this performance, he ranked 11th all-time for single season passing yards, a worthy [outlier](https://www.pro-football-reference.com/leaders/pass_yds_single_season_1999.htm). Right behind him that year was Kurt Warner. Incredibly, the Carolina Panthers missed the playoffs in 1999. Next, let's look at the middling performers according to POM.
+Many of these performances make sense as top statistical passing seasons of all time. At number 1 is Tom Brady's 2007 season in which his team went 16-0 in the regular season. He threw for 50 touchdowns and just 8 interceptions.The second highest performance over median was Steve Beuerlein in 1999. At the time of this performance, he ranked 11th all-time for single season passing yards, a worthy [outlier](https://www.pro-football-reference.com/leaders/pass_yds_single_season_1999.htm). Right behind him that year was Kurt Warner. Incredibly, the Carolina Panthers missed the playoffs in 1999. Another interesting note here is that Peyton Manning and Drew Brees in 2013 and 2011 had nearly 1,000 or more yards than the other QBs on this list, yet their POM scores were similar to others on the list. This could indicate changes in the overall distribution of passing yards but more on that later. Next, let's look at the middling performers according to POM.
 
 ```{r median performers table}
 nfl_passing_pmd %>% 
