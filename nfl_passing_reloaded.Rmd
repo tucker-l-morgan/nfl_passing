@@ -27,6 +27,24 @@ library(tidyverse)
 library(rvest)
 library(RColorBrewer)
 library(viridis)
+
+# set theme defaults
+theme_set(
+  theme_bw() +
+  theme(
+    legend.position = "bottom"
+    , plot.title    = element_text(hjust = 0.5)
+    , plot.subtitle = element_text(hjust = 0.5)    
+    , plot.caption  = element_text(hjust = 0.0)
+  )
+)
+# set color scale defaults
+options(
+    ggplot2.continuous.colour = "viridis"
+  , ggplot2.continuous.fill   = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete   = scale_fill_viridis_d
 ```
 
 ## Introduction
@@ -41,9 +59,9 @@ All of the data used in this analysis was obtained from https://www.pro-football
 
 ### Motivation
 
-A common theme over the past few years in NFL-commentary circles has been how to compare current NFL QB performances (particularly seasonal stat totals) to an historic benchmark. The game has changed in many ways from playstyle philosophies to major rule changes, so it's a fair question: do higher stats (like yards or touchdowns) truly indicate better performing QBs or is it easier / more common to rack up stats in "today's NFL"? A particular podcast highlighting this in my mind has been [The Ryen Russillo Podcast](https://www.theringer.com/ryen-russillo-podcast) from The Ringer. A common refrain has been something along the lines of "well, 4,000 yards ain't what it used to be."
+A common theme over the past few years in NFL-commentary circles has been how to compare current NFL QB performances (particularly seasonal stat totals) to an historic benchmark. The game has changed in many ways from playstyle philosophies to major rule changes, so it's a fair question: do higher stats (like yards or touchdowns) truly indicate better performing QBs or is it easier / more common to rack up stats in "today's NFL"? A particular podcast highlighting this in my mind has been [The Ryen Russillo Podcast](https://www.theringer.com/ryen-russillo-podcast) from _The Ringer_. A common refrain has been something along the lines of "well, 4,000 yards ain't what it used to be." In a recent episode of another podcast at _The Ringer_, [The Bill Simmons Podcast](https://www.theringer.com/the-bill-simmons-podcast/2022/1/17/22887687/a-cowboys-pats-sadness-contest-apex-allen-boger-mania-and-round-2-lines-with-cousin-sal), the hosts discuss how Ben Roethlisberger's recent statistical performance may overestimate the quality of his play in the 2021 season, citing the volume of passes in today's NFL and changes in NFL rules.
 
-I will analyze the distribution of passing yards over the years and see if classic benchmarks like 4,000 yards passing in a single season are as meaningful now as they were 25 years ago. I will also propose a simple measure to assess current performances against those of yesteryear.
+I will first propose a simple measure to assess current performances against those of yesteryear. I will also analyze the distribution of passing yards over the years and see if classic benchmarks like 4,000 yards passing in a single season are as meaningful now as they were 25 years ago.
 
 ## Data Import and Cleaning
 
@@ -62,7 +80,7 @@ nfl_pass_table <-
 
 rm(nfl_pass_html)
 # Here I was able to successfully load in and extract the table from pro-football-reference;
-# in my function, I will want to do this for each year and add a column for year. I think this can be incorporated into the function
+# in my function, I will want to do this for each year and add a column for year. I think this can be incorporated into the function below.
 ```
 
 ```{r import function}
@@ -122,7 +140,71 @@ nfl_passing_clean %>%
   geom_density()
 
 nfl_passing_clean %>% 
-  ggplot(aes(x = rank)) + geom_density()
+  ggplot(aes(x = rank)) + 
+  geom_density()
 ```
 
 As expected, there are a large number of players with fewer than 1,000 or even 500 yards and a large number of players with fewer than 100 passing attempts. Since we're interested in how performances change over time, we may want to be careful about our cut-off here. Setting a minimum yards or attempts cut-off could include more quarterbacks in future years compared to earlier years. In each season, Pro Football Reference has QBs ranked from 1 to n with n varying each year depending on how many players attempt a pass. I think setting a cut-off for `rank` might be the most consistent cut-off from year-to-year.
+
+Although the number of NFL teams has changed over time with 30 teams in 1995 up to 32 teams from 2002 to present, the change in number of teams was relatively small (< 10% increase). Therefore, I will set the `rank` cutoff at 32 each year. This will allows us to capture the QB seeing the most action for each NFL team with one or two additional quarterbacks in the 1995 to 2001 seasons.
+
+```{r rank cutoff distributions}
+nfl_passing_clean %>% 
+  filter(rank <= 32) %>% 
+  ggplot(aes(x = yards, group = season, fill = season)) +
+  geom_density(alpha = 0.5, position = "stack") +
+  theme(legend.position = "right") +
+  labs(x = "Total Passing Yards", y = "Density", title = "Distributions of Total Passing Yards for Top 32 QBs by Season")
+
+nfl_passing_clean %>% 
+  filter(rank <= 32) %>% 
+  ggplot(aes(y = yards, x = season, group = season, fill = season)) +
+  geom_boxplot() +
+  theme(legend.position = "none") +
+  labs(x = "Season", y = "Total Passing Yards", title = "Distributions of Total Passing Yards for Top 32 QBs by Season")
+```
+
+These two figures show that we've eliminated extreme skewness / outliers in most seasons by limiting the scope to the top 32 QBs. I think this will be an effective data set for our upcoming analysis.
+
+## Analysis
+
+```{r enviro clean up, echo = FALSE}
+rm(nfl_pass_table, url, nfl_passing, read_nfl_passing)
+```
+
+### Anachronistic All-Stars: Performance Over Median (POM)
+
+```{r adding performance over median}
+nfl_passing_pmd <- 
+  nfl_passing_clean %>% 
+  group_by(season) %>% 
+  filter(rank <= 32) %>% 
+  mutate(perf_o_med = yards / median(yards))
+```
+
+The new `perf_o_med` statistic indicates the ratio of the QB's passing yards to the passing yards of the median passing performance (among the top 32 QBs) in that season. So for instance, a QB with a `perf_o_med` of 1.5 will have thrown for 50% more passing yards than the median performance in that season. I've decided to use median instead of mean as the measure of central tendency here to eliminate any effects from extreme data points. This measure will hopefully help us quantify how much of an outlier a quarterback's performance was in each individual season compared to the average (here, median).
+
+Let's first look at the top performers over median across all seasons.
+
+```{r top performers table}
+nfl_passing_pmd %>% 
+  ungroup() %>% 
+  arrange(-perf_o_med) %>%
+  select(season, player, team, age, record, yards, td, int, perf_o_med) %>% 
+  head(n = 10) %>% 
+  knitr::kable()
+```
+
+Many of these performances make sense as top statistical passing seasons of all time. At number 1 is Tom Brady's 2007 season in which his team went 16-0 in the regular season. He threw for 50 touchdowns and just 8 interceptions.The second highest performance over median was Steve Beuerlein in 1999. At the time of this performance, he ranked 11th all-time for single season passing yards, a worthy [outlier](https://www.pro-football-reference.com/leaders/pass_yds_single_season_1999.htm). Right behind him that year was Kurt Warner. Incredibly, the Carolina Panthers missed the playoffs in 1999. Next, let's look at the middling performers according to POM.
+
+```{r median performers table}
+nfl_passing_pmd %>% 
+  ungroup() %>% 
+  arrange(-perf_o_med) %>%
+  filter(perf_o_med < 1) %>% 
+  select(season, player, team, age, record, yards, td, int, perf_o_med) %>% 
+  head(10) %>% 
+  knitr::kable()
+```
+
+
